@@ -1,0 +1,11 @@
+[
+  {"define": ["x", 10]},
+  {"define": ["square", ["lambda", ["n"], ["*", "n", "n"]]]},
+  ["print", "x"],
+  ["print", ["square", "x"]],
+  {"if": {
+    "cond": [">", "x", 5],
+    "then": ["print", "x is greater than 5"],
+    "else": ["print", "x is not greater than 5"]
+  }}
+]
