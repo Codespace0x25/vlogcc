@@ -1,108 +1,133 @@
-#include <iostream>
 #include "App.hpp"
+#include <fstream>
+#include <sstream>
+#include <iostream>
+#include <filesystem>
+#include <regex>
 
-namespace App {
-  using json = nlohmann::json;
+namespace fs = std::filesystem;
 
-  App::App(const std::string& name, const std::string& version)
-    : appname(name), appVersion(version) {
-    std::cout << "App: " << name << " v" << version << "\n";
+App::App(const std::string& path) : inputPath(path) {
+    std::ifstream in(path);
+    if (!in) throw std::runtime_error("Could not open file: " + path);
+    std::ostringstream ss;
+    ss << in.rdbuf();
+    inputCode = ss.str();
 
-    // Initialize function environment with some basic functions
-    funcEnv = {
-      {"+", [](const json& args) {
-        int sum = 0;
-        for (const auto& v : args) sum += v.get<int>();
-        return sum;
-      }},
-      {"-", [](const json& args) {
-        if (args.size() == 1) return -args[0].get<int>();
-        int res = args[0].get<int>();
-        for (size_t i = 1; i < args.size(); ++i)
-          res -= args[i].get<int>();
-        return res;
-      }},
-      {"*", [](const json& args) {
-        int prod = 1;
-        for (const auto& v : args) prod *= v.get<int>();
-        return prod;
-      }},
-      {"/", [](const json& args) {
-        int res = args[0].get<int>();
-        for (size_t i = 1; i < args.size(); ++i)
-          res /= args[i].get<int>();
-        return res;
-      }},
-      {">", [](const json& args) {
-        return args[0].get<int>() > args[1].get<int>();
-      }},
-      {"print", [](const json& args) {
-        for (const auto& v : args) std::cout << v << " ";
-        std::cout << "\n";
-        return nullptr;
-      }}
-    };
-  }
+    currentDir = fs::absolute(fs::path(path)).parent_path();
+}
 
-  App::~App() {}
+void App::compile(const std::string& outputPath) {
+    std::ofstream out(outputPath);
+    if (!out) throw std::runtime_error("Failed to open output file");
 
-  json App::eval(const json& expr) {
-    // Variable or symbol
-    if (expr.is_string()) {
-      std::string var = expr.get<std::string>();
-      if (env.find(var) != env.end())
-        return env[var];
-      return expr; // symbol itself if not found
+    std::string parsedCode = parse();
+    out << parsedCode;
+
+    std::cout << "Compiled to " << outputPath << "\n";
+}
+
+std::string App::parse() {
+    std::string preprocessed = preprocess(inputCode, currentDir);
+    return preprocessed;
+}
+
+std::string App::preprocess(const std::string& code, const std::string& basePath) {
+    std::istringstream in(code);
+    std::ostringstream out;
+    std::string line;
+
+    std::regex requireRegex(R"regex(^\s*require\s+"(.+?)"\s*;?)regex");
+    std::regex externRegex(R"(^\s*extern\s+(\w[\w\d\*]*)\s+(\w+)\s*\((.*?)\)\s*;?)");
+    std::regex defunRegex(R"(^\s*defun\s+(\w+)\s*\((.*?)\)\s*(\w[\w\d\*]*)\s*\{)");
+
+    // For mutability & const handling
+    std::regex mutInitRegex(R"(^\s*mut\s+(\w[\w\d\*]*)\s+(\w+)\s*=\s*(.+)\s*;?)");
+    std::regex mutDeclRegex(R"(^\s*mut\s+(\w[\w\d\*]*)\s+(\w+)\s*;?)");
+    std::regex constInitRegex(R"(^\s*(\w[\w\d\*]*)\s+(\w+)\s*=\s*(.+)\s*;?)");
+    std::regex constDeclRegex(R"(^\s*(\w[\w\d\*]*)\s+(\w+)\s*;?)");
+
+    while (std::getline(in, line)) {
+        line = trim(line);
+        std::smatch match;
+
+        if (std::regex_match(line, match, requireRegex)) {
+            std::string reqPath = match[1].str();
+            fs::path fullPath = fs::absolute(fs::path(basePath) / reqPath);
+            std::ifstream reqFile(fullPath);
+            if (!reqFile) throw std::runtime_error("Could not open required file: " + fullPath.string());
+            std::ostringstream reqContent;
+            reqContent << reqFile.rdbuf();
+            out << "// --- require: " << reqPath << " ---\n";
+            out << preprocess(reqContent.str(), fullPath.parent_path().string()) << "\n";
+        }
+        else if (std::regex_match(line, match, externRegex)) {
+            std::string retType = match[1];
+            std::string name = match[2];
+            std::string args = match[3];
+            out << retType << " " << name << "(" << args << ");\n";
+        }
+        else if (std::regex_match(line, match, defunRegex)) {
+            std::string name = match[1];
+            std::string args = match[2];
+            std::string retType = match[3];
+            out << retType << " " << name << "(" << args << ") {\n";
+
+            std::string bodyLine;
+            while (std::getline(in, bodyLine)) {
+                std::string trimmed = trim(bodyLine);
+                std::smatch bodyMatch;
+
+                if (trimmed.empty()) {
+                    out << "\n";
+                }
+                // return statement (catch first!)
+                else if (trimmed.rfind("return ", 0) == 0 || trimmed == "return;" || trimmed.rfind("return(", 0) == 0) {
+                    out << indent(trimmed) << "\n";
+                }
+                // mutable with init
+                else if (std::regex_match(trimmed, bodyMatch, mutInitRegex)) {
+                    out << indent(bodyMatch[1].str() + " " + bodyMatch[2].str() + " = " + bodyMatch[3].str() + ";") << "\n";
+                }
+                // mutable without init
+                else if (std::regex_match(trimmed, bodyMatch, mutDeclRegex)) {
+                    out << indent(bodyMatch[1].str() + " " + bodyMatch[2].str() + ";") << "\n";
+                }
+                // const with init
+                else if (std::regex_match(trimmed, bodyMatch, constInitRegex)) {
+                    out << indent("const " + bodyMatch[1].str() + " " + bodyMatch[2].str() + " = " + bodyMatch[3].str() + ";") << "\n";
+                }
+                // const without init
+                else if (std::regex_match(trimmed, bodyMatch, constDeclRegex)) {
+                    out << indent("const " + bodyMatch[1].str() + " " + bodyMatch[2].str() + ";") << "\n";
+                }
+                // closing brace ends block
+                else if (trimmed == "}") {
+                    break;
+                }
+                // fallback
+                else {
+                    out << indent(trimmed) << "\n";
+                }
+            }
+
+            out << "}\n";
+        }
+        else {
+            out << line << "\n";
+        }
     }
 
-    // Literal (number, bool, null)
-    if (expr.is_number() || expr.is_boolean() || expr.is_null()) {
-      return expr;
-    }
+    return out.str();
+}
 
-    // Function call (list)
-    if (expr.is_array()) {
-      if (expr.empty()) return nullptr;
-      std::string funcName = expr[0].get<std::string>();
-      json args = json::array();
-      for (size_t i = 1; i < expr.size(); ++i) {
-        args.push_back(eval(expr[i]));
-      }
+std::string App::trim(const std::string& str) {
+    const char* ws = " \t\n\r";
+    size_t start = str.find_first_not_of(ws);
+    size_t end = str.find_last_not_of(ws);
+    return (start == std::string::npos) ? "" : str.substr(start, end - start + 1);
+}
 
-      if (funcEnv.find(funcName) != funcEnv.end()) {
-        return funcEnv[funcName](args);
-      } else {
-        std::cerr << "Unknown function: " << funcName << "\n";
-        return nullptr;
-      }
-    }
-
-    // Special forms (objects)
-    if (expr.is_object()) {
-      if (expr.contains("define")) {
-        std::string var = expr["define"][0].get<std::string>();
-        json val = eval(expr["define"][1]);
-        env[var] = val;
-        return nullptr;
-      }
-      if (expr.contains("if")) {
-        json cond = eval(expr["if"]["cond"]);
-        if (cond.is_boolean() && cond.get<bool>())
-          return eval(expr["if"]["then"]);
-        else
-          return eval(expr["if"]["else"]);
-      }
-
-      // Treat other objects as data
-      return expr;
-    }
-
-    return nullptr;
-  }
-
-  void App::run(const json& program) {
-    for (const auto& expr : program) {
-      eval(expr);
-    }
-  }
+std::string App::indent(const std::string& code, int level) {
+    return std::string(level * 4, ' ') + trim(code);
 }

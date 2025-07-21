@@ -1,0 +1,17 @@
+require "lib/lib.code";
+
+
+defun main(void) int {
+  int x = 2;
+  mut int y = 9;
+  mut int z;
+  y = (y*2);
+  z = x* y;
+  printf("%d\n",z);
+  mut void* da = malloc(22);
+  mut void* data =malloc(0);
+
+  free(da);
+  free(data);
+  return 0;
+}

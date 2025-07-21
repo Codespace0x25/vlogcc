@@ -1,30 +1,51 @@
-#include <iostream>
-#include <fstream>
 #include "App.hpp"
-#include "json.hpp"
+#include <cstdlib>
+#include <iostream>
+#include <sstream>
 
-int main(int argc, char* argv[]) {
-  if (argc != 2) {
-    std::cerr << "Usage: " << argv[0] << " <program.json>\n";
+int main(int argc, char **argv) {
+  if (argc < 2) {
+    std::cerr << "Usage: ./main <input.code> [extra gcc flags]\n";
     return 1;
   }
 
-  std::ifstream file(argv[1]);
-  if (!file) {
-    std::cerr << "Failed to open file: " << argv[1] << "\n";
-    return 1;
-  }
-
-  nlohmann::json program;
   try {
-    file >> program;
-  } catch (const std::exception& e) {
-    std::cerr << "JSON parse error: " << e.what() << "\n";
-    return 1;
-  }
+    App app(argv[1]);
+    app.compile("out.c");
 
-  App::App app("JSONLang", "0.1");
-  app.run(program);
+    // Build the GCC compile command
+    std::stringstream compile_cmd;
+    compile_cmd
+        << "gcc -std=c99 "
+           "-Wall -Wextra -Wpedantic -Werror "
+           "-Wconversion -Wsign-conversion -Wshadow -Wfloat-equal "
+           "-Wundef -Wcast-align -Wcast-qual -Wwrite-strings "
+           "-Wmissing-prototypes -Wstrict-prototypes -Wold-style-definition "
+           "-Wformat=2 -Wformat-security -Wlogical-op "
+           "-Wimplicit-fallthrough=5 -Wduplicated-cond -Wduplicated-branches "
+           "-Wvla -Walloc-zero -Wnull-dereference -Wuninitialized "
+           "-fanalyzer "
+           "-fstrict-aliasing -Wstrict-aliasing=3 "
+           "-fstack-protector-strong -D_FORTIFY_SOURCE=2 "
+           "-fPIE -pie "
+           "-O2 "
+           "-fsanitize=undefined,address "
+           "out.c ";
+    // Append extra user flags (like -lm, -lwhatever)
+    for (int i = 2; i < argc; ++i) {
+      compile_cmd << " " << argv[i];
+    }
+
+    // Compile and clean up
+
+    std::cout << compile_cmd.str().c_str() << "\n";
+    system(compile_cmd.str().c_str());
+    system("rm out.c");
+
+  } catch (const std::exception &e) {
+    std::cerr << "Error: " << e.what() << "\n";
+    return 2;
+  }
 
   return 0;
 }

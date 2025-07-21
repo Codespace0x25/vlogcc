@@ -1,0 +1,50 @@
+#include <stddef.h>
+#include <sys/syscall.h>
+#include <unistd.h>
+
+// stdio
+extern int puts(const char *);
+extern int printf(const char *restrict, ...);
+
+// stdlib
+extern void *malloc(size_t);
+extern void *calloc(size_t, size_t);
+extern void *realloc(void *, size_t);
+extern void free(void *);
+extern void exit(int);
+extern void abort(void);
+extern int atexit(void (*)(void));
+
+// memory
+extern void *memcpy(void *, const void *, size_t);
+extern void *memmove(void *, const void *, size_t);
+extern void *memset(void *, int, size_t);
+extern int memcmp(const void *, const void *, size_t);
+
+// string
+extern size_t strlen(const char *);
+extern int strcmp(const char *, const char *);
+extern char *strcpy(char *, const char *);
+extern char *strncpy(char *, const char *, size_t);
+extern char *strcat(char *, const char *);
+extern char *strncat(char *, const char *, size_t);
+extern char *strchr(const char *, int);
+extern char *strstr(const char *, const char *);
+
+// conversion
+extern int atoi(const char *);
+extern long atol(const char *);
+extern double atof(const char *);
+
+// rand/time
+extern int rand(void);
+extern void srand(unsigned int);
+extern long time(void *);
+int rand_int(int min, int max);
+defun rand_int(int min, int max) int {
+  srand((unsigned int)time(NULL));
+  return (rand() % (max - min + 1)) + min;
+}
+
+// syscall
+extern long syscall(long, ...);
