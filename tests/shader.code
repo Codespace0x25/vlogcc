@@ -1,0 +1,28 @@
+require "../lib/lib.code";
+require "../lib/raylib.code";
+
+defun main(void) int {
+
+    int screenWidth = 800;
+    int screenHeight = 800;
+
+    InitWindow(screenWidth, screenHeight, "Raylib Shader Effect on Rectangle");
+
+    Shader shader = LoadShader(0, "shader.fs");
+    Rectangle rect = { screenWidth / 4, screenHeight / 4, screenWidth / 4, screenHeight / 4 };
+
+    while(!WindowShouldClose()) {
+        BeginDrawing();
+
+        ClearBackground(BLACK);
+
+        BeginShaderMode(shader);
+        DrawRectangleRec(rect, WHITE);
+        EndShaderMode();
+
+        EndDrawing();
+    }
+    
+    UnloadShader(shader);
+    CloseWindow();
+}
