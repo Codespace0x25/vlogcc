@@ -4,7 +4,6 @@
 #include <stddef.h>
 #include <sys/syscall.h>
 #include <unistd.h>
-#include "raylib.h"
 
 
 // --- C Standard Library externs ---
@@ -51,7 +50,10 @@ extern double atof(const char *);
 // random and time
 extern int rand(void);
 extern void srand(unsigned int);
-extern long time(void *);
+
+// --- C time functions ---
+extern long time(long *t);
+extern long clock(void);
 
 // syscall interface
 extern long syscall(long, ...);
@@ -59,7 +61,9 @@ extern long syscall(long, ...);
 // --- vlog standard library functions ---
 
 defun rand_int(int min, int max) int {
-    srand((unsigned int)time(NULL));
+    mut unsigned int seed = (unsigned int)time(NULL) ^ (unsigned int)clock();
+    seed ^= (unsigned int)min; // Add memory address noise
+    srand(seed);
     return (rand() % (max - min + 1)) + min;
 }
 
@@ -271,7 +275,7 @@ defun string_clear(String* s) void {
 #include <math.h>
 
 
-macro PI 3.1415926535
+macro PI_M 3.1415926535
 
 type Vec2 {
     float x;

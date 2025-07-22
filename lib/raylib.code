@@ -1,0 +1,3 @@
+// ray.code — raylib externs and basics
+
+#include "raylib.h"

@@ -1,37 +1,66 @@
 // CSODE
 require "../lib/lib.code";
+require "../lib/raylib.code";
+
+
+defun rand_color() Color{
+    return (Color){
+       (unsigned char) rand_int(50, 255), // R
+       (unsigned char) rand_int(50, 255), // G
+       (unsigned char) rand_int(50, 255), // B
+        255                      // A
+    };
+}
+
 
 defun main(void) int {
-
-    // Window Related Stuff
-    int width = 400;
+    // Window setup
+    int width = 800;
     int height = 600;
-    char* title = "Jsonlang";
+    char* title = "Jsonlang DVD Logo";
 
-    // Rectangle Related stuff
-    mut int posX = 0;
-    int rec_width = 20;
-    int rec_height = 20;
+    // Rectangle setup
+    int rec_width = 80;
+    int rec_height = 40;
+    mut int posX = 100;
     mut int posY = 100;
-    mut int direction_x = 1;
 
-    InitWindow(width, height,title);
+    // Movement direction
+    mut int dirX = 2;
+    mut int dirY = 2;
 
+    // Starting color
+    mut Color currentColor = GREEN;
+
+    // Init window
+    InitWindow(width, height, title);
     SetTargetFPS(60);
 
-    while(!WindowShouldClose()) {
-        posX += direction_x;
-        posY += direction_x;
-        
-        if (posX > GetScreenWidth() - rec_width || posX < 0) {
-            direction_x *= -1;
+    while (!WindowShouldClose()) {
+        // Move the rectangle
+        posX += dirX;
+        posY += dirY;
+
+        // Collision detection (X)
+        if (posX <= 0 || posX + rec_width >= GetScreenWidth()) {
+            dirX *= -1;
+            currentColor = rand_color(); // Change color on bounce
         }
-        if (posY > GetScreenHeight() - rec_height || posY < 0) {
-            direction_x *= -1; 
+
+        // Collision detection (Y)
+        if (posY <= 0 || posY + rec_height >= GetScreenHeight()) {
+            dirY *= -1;
+            currentColor = rand_color(); // Change color on bounce
         }
+
+        // Drawing
         BeginDrawing();
         ClearBackground(BLACK);
-        DrawRectangle(posX, posY, rec_width, rec_height, GREEN);
+        DrawRectangle(posX, posY, rec_width, rec_height, currentColor);
         EndDrawing();
     }
+
+    CloseWindow();
 }
+
+// Utility function to get random color
