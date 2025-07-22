@@ -1,13 +1,14 @@
 # CodeVoid basic (CPP) Makefile
-
 # Tools
 ASM     = nasm
-CC      = clang++
+CC      = g++
 
 # Project Structure
 SRC     = src
 BUILD   = build
+TEST   = tests
 TARGET  = $(BUILD)/main
+
 
 # Flags
 CFLAGS  = -std=c++17 -Wall -Wextra -O2
@@ -36,6 +37,10 @@ $(TARGET): $(OBJS)
 # Run the output binary
 run: $(TARGET)
 	./$(TARGET)
+
+# Run the tests from the root directory
+test: 
+	@$(MAKE) -C tests
 
 # Clean build artifacts
 clean:

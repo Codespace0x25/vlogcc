@@ -1,10 +1,12 @@
-// --- require: lib/lib.code ---
+// --- require: ../lib/lib.code ---
 // lib.code — vlog standard library externs and basics
 
 // --- Standard includes ---
 #include <stddef.h>
 #include <sys/syscall.h>
 #include <unistd.h>
+#include "raylib.h"
+
 
 // --- C Standard Library externs ---
 int puts(const char *);
@@ -34,6 +36,13 @@ extern char *strcat(char *, const char *);
 extern char *strncat(char *, const char *, size_t);
 extern char *strchr(const char *, int);
 extern char *strstr(const char *, const char *);
+char* strdup(char* s) {
+    const size_t len = strlen(s);;
+    char* copy = malloc(len + 1);;
+    if (copy) memcpy(copy, s, len + 1);
+    return copy;
+}
+
 
 // conversion functions
 int atoi(const char *);
@@ -55,12 +64,12 @@ int rand_int(int min, int max) {
     return (rand() % (max - min + 1)) + min;
 }
 
-// --- Simple vector type ---
+// --- Simple vector  ---
 
 typedef struct {
-void **items;
-int capacity;
-int length;
+    void **items;
+    int capacity;
+    int length;
 } vector;
 
 void vector_init(vector *v) {
@@ -95,15 +104,15 @@ void vector_free(vector *v) {
 // --- Hashmap implementation ---
 
 typedef struct {
-char *key;
-void *value;
-int in_use; // 0 = empty, 1 = occupied
+    char *key;
+    void *value;
+    int in_use; // 0 = empty, 1 = occupied;
 } hashmap_entry;
 
 typedef struct {
-hashmap_entry *entries;
-int capacity;
-int length;
+    hashmap_entry *entries;
+    int capacity;
+    int length;
 } hashmap;
 
 void hashmap_resize(hashmap *map, int new_capacity);
@@ -188,6 +197,94 @@ void hashmap_free(hashmap *map) {
     map->capacity = 0;
     map->length = 0;
 }
+
+// String structure and functions
+
+typedef struct {
+    char* data;
+    size_t len;
+    size_t cap;
+} String;
+
+String string_new(void) {
+    String s;
+    s.cap = 16;
+    s.len = 0;
+    s.data = malloc(s.cap);
+    if (s.data != NULL) {
+    s.data[0] = '\0';
+}
+return s;
+}
+
+String string_from(char* src) {
+    size_t slen = strlen(src);;
+    String s;
+    s.cap = slen + 1;
+    s.len = slen;
+    s.data = malloc(s.cap);
+    if (s.data != NULL) {
+    memcpy(s.data, src, slen + 1);
+}
+return s;
+}
+
+void string_free(String* s) {
+    if (s != NULL && s->data != NULL) {
+    free(s->data);
+    s->data = NULL;
+    s->len = 0;
+    s->cap = 0;
+}
+}
+
+void string_push(String* s, char c) {
+    if (s->len + 1 >= s->cap) {
+    s->cap = s->cap * 2;
+    s->data = realloc(s->data, s->cap);
+}
+s->data[s->len] = c;
+s->len = s->len + 1;
+s->data[s->len] = '\0';
+}
+
+void string_append(String* s, const char* suffix) {
+    size_t slen = strlen(suffix);;
+    if (s->len + slen >= s->cap) {
+    while (s->len + slen >= s->cap) {
+    s->cap = s->cap * 2;
+}
+s->data = realloc(s->data, s->cap);
+}
+memcpy(s->data + s->len, suffix, slen + 1);
+s->len = s->len + slen;
+}
+
+void string_clear(String* s) {
+    s->len = 0;
+    if (s->data != NULL) {
+    s->data[0] = '\0';
+}
+}
+
+// math
+
+#include <math.h>
+
+
+#define PI 3.1415926535
+
+typedef struct {
+    float x;
+    float y;
+} Vec2;
+
+typedef struct {
+    float x;
+    float y;
+    float z;
+} Vec3;
+
 
 
 int main(void) {

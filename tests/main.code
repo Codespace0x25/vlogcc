@@ -1,0 +1,37 @@
+// CSODE
+require "../lib/lib.code";
+
+defun main(void) int {
+
+    // Window Related Stuff
+    int width = 400;
+    int height = 600;
+    char* title = "Jsonlang";
+
+    // Rectangle Related stuff
+    mut int posX = 0;
+    int rec_width = 20;
+    int rec_height = 20;
+    mut int posY = 100;
+    mut int direction_x = 1;
+
+    InitWindow(width, height,title);
+
+    SetTargetFPS(60);
+
+    while(!WindowShouldClose()) {
+        posX += direction_x;
+        posY += direction_x;
+        
+        if (posX > GetScreenWidth() - rec_width || posX < 0) {
+            direction_x *= -1;
+        }
+        if (posY > GetScreenHeight() - rec_height || posY < 0) {
+            direction_x *= -1; 
+        }
+        BeginDrawing();
+        ClearBackground(BLACK);
+        DrawRectangle(posX, posY, rec_width, rec_height, GREEN);
+        EndDrawing();
+    }
+}
