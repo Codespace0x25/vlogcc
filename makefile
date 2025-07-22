@@ -1,25 +1,26 @@
 # CodeVoid basic (CPP) Makefile
-# Tools
+
+# --- Tools ---
 ASM     = nasm
 CC      = g++
 
-# Project Structure
+# --- Project Structure ---
 SRC     = src
 BUILD   = build
-TEST   = tests
+TEST    = tests
 TARGET  = $(BUILD)/main
 
-
-# Flags
+# --- Flags ---
 CFLAGS  = -std=c++17 -Wall -Wextra -O2
 LDFLAGS = -pthread -lm
 
-# Sources
+# --- Sources ---
 CXX_SOURCES := $(shell find $(SRC) -name '*.cpp')
 CXX_OBJS    := $(patsubst $(SRC)/%.cpp, $(BUILD)/%.o, $(CXX_SOURCES))
 OBJS        := $(CXX_OBJS)
 
-.PHONY: all clean run
+# --- Targets ---
+.PHONY: all clean run test install debug
 
 # Default target
 all: $(TARGET)
@@ -38,10 +39,29 @@ $(TARGET): $(OBJS)
 run: $(TARGET)
 	./$(TARGET)
 
-# Run the tests from the root directory
-test: 
-	@$(MAKE) -C tests
+# Debug build (adds -g)
+debug:
+	$(MAKE) CFLAGS="-std=c++17 -Wall -Wextra -g" all
 
-# Clean build artifacts
+# Install binary and stdlib
+PREFIX ?= /
+PREFIX_lib ?= /usr
+install: $(TARGET)
+	@echo "Installing binary to $(PREFIX)/bin/"
+	@sudo mkdir -p "$(PREFIX)/bin"
+	@sudo cp "$(TARGET)" "$(PREFIX)/bin/vlogcc"
+	@echo "Installing stdlib to $(PREFIX_lib)/include/vlog/"
+	@if [ -d lib ]; then \
+		sudo mkdir -p "$(PREFIX_lib)/include/vlog/"; \
+		sudo cp -r lib/* "$(PREFIX_lib)/include/vlog/"; \
+	else \
+		echo "Warning: lib/ directory not found. Skipping lib install."; \
+	fi
+
+# Run tests (from ./tests directory)
+test:
+	@$(MAKE) -C $(TEST)
+
+# Clean all build files
 clean:
 	rm -rf $(BUILD)

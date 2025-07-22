@@ -29,18 +29,19 @@ void App::compile(const std::string &outputPath) {
   std::cout << "Compiled to " << outputPath << "\n";
 }
 
-std::string App::parse() {
-  return preprocess(inputCode, currentDir);
-}
+std::string App::parse() { return preprocess(inputCode, currentDir); }
 
-std::string App::preprocess(const std::string &code, const std::string &basePath) {
+std::string App::preprocess(const std::string &code,
+                            const std::string &basePath) {
   std::istringstream in(code);
   std::ostringstream out;
   std::string line;
 
   std::regex requireRegex(R"(^\s*require\s+"(.+?)\"\s*;?)");
-  std::regex externRegex(R"(^\s*extern\s+([\w\d\*\s]+?)\s+(\w+)\s*\((.*?)\)\s*;?)");
-  std::regex defunRegex(R"(^\s*defun\s+(\w+)\s*\((.*?)\)\s*([\w\d\*\s]+)\s*\{)");
+  std::regex externRegex(
+      R"(^\s*extern\s+([\w\d\*\s]+?)\s+(\w+)\s*\((.*?)\)\s*;?)");
+  std::regex defunRegex(
+      R"(^\s*defun\s+(\w+)\s*\((.*?)\)\s*([\w\d\*\s]+)\s*\{)");
   std::regex typeRegex(R"(^\s*type\s+(\w+)\s*\{\s*)");
   std::regex macroRegex(R"(^\s*macro\s+(\w+)\s+(.+?)\s*;?$)");
 
@@ -55,14 +56,24 @@ std::string App::preprocess(const std::string &code, const std::string &basePath
 
     if (std::regex_match(line, match, requireRegex)) {
       std::string reqPath = match[1].str();
+
       fs::path fullPath = fs::absolute(fs::path(basePath) / reqPath);
+      if (!fs::exists(fullPath)) {
+        const char *vlogEnv = std::getenv("VLOG_LIB");
+        fs::path libBase = vlogEnv ? vlogEnv : "/usr/include/vlog";
+        fullPath = fs::absolute(libBase / reqPath);
+      }
+
       std::ifstream reqFile(fullPath);
       if (!reqFile)
-        throw std::runtime_error("Could not open required file: " + fullPath.string());
+        throw std::runtime_error("Could not open required file: " +
+                                 fullPath.string());
+
       std::ostringstream reqContent;
       reqContent << reqFile.rdbuf();
       out << "// --- require: " << reqPath << " ---\n";
-      out << preprocess(reqContent.str(), fullPath.parent_path().string()) << "\n";
+      out << preprocess(reqContent.str(), fullPath.parent_path().string())
+          << "\n";
 
     } else if (std::regex_match(line, match, macroRegex)) {
       std::string name = match[1];
@@ -93,13 +104,20 @@ std::string App::preprocess(const std::string &code, const std::string &basePath
         } else if (trimmed.rfind("return", 0) == 0) {
           out << indent(trimmed) << "\n";
         } else if (std::regex_match(trimmed, bodyMatch, mutInitRegex)) {
-          out << indent(bodyMatch[1].str() + " " + bodyMatch[2].str() + " = " + bodyMatch[3].str() + ";") << "\n";
+          out << indent(bodyMatch[1].str() + " " + bodyMatch[2].str() + " = " +
+                        bodyMatch[3].str() + ";")
+              << "\n";
         } else if (std::regex_match(trimmed, bodyMatch, mutDeclRegex)) {
-          out << indent(bodyMatch[1].str() + " " + bodyMatch[2].str() + ";") << "\n";
+          out << indent(bodyMatch[1].str() + " " + bodyMatch[2].str() + ";")
+              << "\n";
         } else if (std::regex_match(trimmed, bodyMatch, constInitRegex)) {
-          out << indent("const " + bodyMatch[1].str() + " " + bodyMatch[2].str() + " = " + bodyMatch[3].str() + ";") << "\n";
+          out << indent("const " + bodyMatch[1].str() + " " +
+                        bodyMatch[2].str() + " = " + bodyMatch[3].str() + ";")
+              << "\n";
         } else if (std::regex_match(trimmed, bodyMatch, constDeclRegex)) {
-          out << indent("const " + bodyMatch[1].str() + " " + bodyMatch[2].str() + ";") << "\n";
+          out << indent("const " + bodyMatch[1].str() + " " +
+                        bodyMatch[2].str() + ";")
+              << "\n";
         } else {
           out << indent(trimmed) << "\n";
         }

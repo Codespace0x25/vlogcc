@@ -1,9 +1,9 @@
 // CSODE
-require "../lib/lib.code";
-require "../lib/raylib.code";
+require "lib.code";
+require "raylib.code";
 
 
-defun rand_color() Color{
+defun rand_color(void) Color{
     return (Color){
        (unsigned char) rand_int(50, 255), // R
        (unsigned char) rand_int(50, 255), // G
