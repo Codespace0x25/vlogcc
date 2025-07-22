@@ -1,5 +1,6 @@
 // CSODE
 require "../lib/lib.code";
+require "../lib/raylib.code";
 
 defun main(void) int {
 
