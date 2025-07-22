@@ -16,9 +16,12 @@
 (defconst vlog-font-lock-keywords
   (let* (
          ;; Keywords
-         (keywords '("defun" "extern" "return" "require" "if" "else" "const" "struct" "typedef" "mut"))
+	 (keywords '("defun" "extern" "return" "require" "if" "else"
+		     "const" "struct" "typedef" "mut" "type" "macro" "#include"
+		     "while" "if" "else"))
          ;; Types
-         (types '("int" "float" "double" "char" "void" "string" "bool"))
+         (types '("int" "float" "double" "char" "void" "String" "bool"
+		  "vector" "hashmap"))
 
          (keyword-regexp (regexp-opt keywords 'words))
          (type-regexp (regexp-opt types 'words)))

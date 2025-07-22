@@ -1,0 +1,222 @@
+// --- require: lib/lib.code ---
+// lib.code — vlog standard library externs and basics
+
+// --- Standard includes ---
+#include <stddef.h>
+#include <sys/syscall.h>
+#include <unistd.h>
+
+// --- C Standard Library externs ---
+int puts(const char *);
+int printf(const char *restrict, ...);
+
+extern void *malloc(size_t);
+extern void *calloc(size_t, size_t);
+extern void *realloc(void *, size_t);
+void free(void *);
+
+void exit(int);
+void abort(void);
+int atexit(void (*)(void));
+
+// memory operations
+extern void *memcpy(void *, const void *, size_t);
+extern void *memmove(void *, const void *, size_t);
+extern void *memset(void *, int, size_t);
+int memcmp(const void *, const void *, size_t);
+
+// string operations
+size_t strlen(const char *);
+int strcmp(const char *, const char *);
+extern char *strcpy(char *, const char *);
+extern char *strncpy(char *, const char *, size_t);
+extern char *strcat(char *, const char *);
+extern char *strncat(char *, const char *, size_t);
+extern char *strchr(const char *, int);
+extern char *strstr(const char *, const char *);
+
+// conversion functions
+int atoi(const char *);
+long atol(const char *);
+double atof(const char *);
+
+// random and time
+int rand(void);
+void srand(unsigned int);
+long time(void *);
+
+// syscall interface
+long syscall(long, ...);
+
+// --- vlog standard library functions ---
+
+int rand_int(int min, int max) {
+    srand((unsigned int)time(NULL));
+    return (rand() % (max - min + 1)) + min;
+}
+
+// --- Simple vector type ---
+
+typedef struct {
+void **items;
+int capacity;
+int length;
+} vector;
+
+void vector_init(vector *v) {
+    v->capacity = 16;
+    v->length = 0;
+    v->items = malloc(sizeof(void *) * (size_t)v->capacity);
+}
+
+void vector_push(vector *v, void *item) {
+    if (v->length >= v->capacity) {
+    v->capacity *= 2;
+    v->items = realloc(v->items, sizeof(void *) * (size_t)v->capacity);
+}
+v->items[v->length] = item;
+v->length += 1;
+}
+
+void* vector_get(vector *v, int index) {
+    if (index < 0 || index >= v->length) {
+    return NULL;
+}
+return v->items[index];
+}
+
+void vector_free(vector *v) {
+    free(v->items);
+    v->items = NULL;
+    v->capacity = 0;
+    v->length = 0;
+}
+
+// --- Hashmap implementation ---
+
+typedef struct {
+char *key;
+void *value;
+int in_use; // 0 = empty, 1 = occupied
+} hashmap_entry;
+
+typedef struct {
+hashmap_entry *entries;
+int capacity;
+int length;
+} hashmap;
+
+void hashmap_resize(hashmap *map, int new_capacity);
+void hashmap_init(hashmap *map, int initial_capacity) {
+    map->capacity = initial_capacity > 0 ? initial_capacity : 16;
+    map->length = 0;
+    map->entries = malloc(sizeof(hashmap_entry) * (size_t)map->capacity);
+    for (int i = 0; i < map->capacity; i++) {
+    map->entries[i].in_use = 0;
+    map->entries[i].key = NULL;
+    map->entries[i].value = NULL;
+}
+}
+
+long djb2_hash(const char *str) {
+    unsigned long hash = 5381;;
+    int c;
+    while ((c = *str++)) {
+    hash = ((hash << 5) + hash) + (unsigned char)c; // hash * 33 + c
+}
+return (long int)hash;
+}
+
+void hashmap_set(hashmap *map, char *key, void *value) {
+    if (map->length * 2 >= map->capacity) {
+    hashmap_resize(map, map->capacity * 2);
+}
+unsigned long hash = (long unsigned) djb2_hash(key);
+int index = (int)(hash % (unsigned long)map->capacity);
+while (map->entries[index].in_use == 1) {
+if (strcmp(map->entries[index].key, key) == 0) {
+map->entries[index].value = value;
+return;
+}
+index = (index + 1) % map->capacity;
+}
+map->entries[index].key = key;
+map->entries[index].value = value;
+map->entries[index].in_use = 1;
+map->length += 1;
+}
+
+void* hashmap_get(hashmap *map, char *key) {
+    unsigned long hash = (unsigned)djb2_hash(key);;
+    int index = (int)(hash % (unsigned)map->capacity);;
+    while (map->entries[index].in_use != 0) {
+    if (map->entries[index].in_use == 1 &&
+    strcmp(map->entries[index].key, key) == 0) {
+    return map->entries[index].value;
+}
+index = (index + 1) % map->capacity;
+}
+return NULL;
+}
+
+void hashmap_resize(hashmap *map, int new_capacity) {
+    hashmap_entry *old_entries = map->entries;
+    const int old_capacity = map->capacity;;
+
+    map->entries = malloc(sizeof(hashmap_entry) * (size_t)new_capacity);
+    map->capacity = new_capacity;
+    map->length = 0;
+
+    for (int i = 0; i < new_capacity; i++) {
+    map->entries[i].in_use = 0;
+    map->entries[i].key = NULL;
+    map->entries[i].value = NULL;
+}
+
+for (int i = 0; i < old_capacity; i++) {
+if (old_entries[i].in_use == 1) {
+hashmap_set(map, old_entries[i].key, old_entries[i].value);
+}
+}
+
+free(old_entries);
+}
+
+void hashmap_free(hashmap *map) {
+    free(map->entries);
+    map->entries = NULL;
+    map->capacity = 0;
+    map->length = 0;
+}
+
+
+int main(void) {
+    hashmap map;
+    hashmap_init(&map, 16);
+
+    char* key1 = "foo";;
+    char* key2 = "bar";;
+
+    int value1 = 42;;
+    int value2 = 1337;;
+
+    hashmap_set(&map, key1, &value1);
+    hashmap_set(&map, key2, &value2);
+
+    int *v1 = (int *)hashmap_get(&map, key1);
+    int *v2 = (int *)hashmap_get(&map, key2);
+
+    if (v1 != NULL) {
+    printf("Value for %s is %d\n", key1, *v1);
+}
+if (v2 != NULL) {
+printf("Value for %s is %d\n", key2, *v2);
+}
+
+int r = rand_int(1, 100);
+printf("Random number between 1 and 100: %d\n", r);
+
+hashmap_free(&map);
+
+return 0;
+}

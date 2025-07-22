@@ -1,17 +1,32 @@
 require "lib/lib.code";
 
-
 defun main(void) int {
-  int x = 2;
-  mut int y = 9;
-  mut int z;
-  y = (y*2);
-  z = x* y;
-  printf("%d\n",z);
-  mut void* da = malloc(22);
-  mut void* data =malloc(0);
+    mut hashmap map;
+    hashmap_init(&map, 16);
 
-  free(da);
-  free(data);
-  return 0;
+    mut char* key1 = "foo";
+    mut char* key2 = "bar";
+
+    mut int value1 = 42;
+    mut int value2 = 1337;
+
+    hashmap_set(&map, key1, &value1);
+    hashmap_set(&map, key2, &value2);
+
+    int *v1 = (int *)hashmap_get(&map, key1);
+    int *v2 = (int *)hashmap_get(&map, key2);
+
+    if (v1 != NULL) {
+        printf("Value for %s is %d\n", key1, *v1);
+    }
+    if (v2 != NULL) {
+        printf("Value for %s is %d\n", key2, *v2);
+    }
+
+    int r = rand_int(1, 100);
+    printf("Random number between 1 and 100: %d\n", r);
+
+    hashmap_free(&map);
+
+    return 0;
 }

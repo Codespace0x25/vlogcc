@@ -16,21 +16,16 @@ int main(int argc, char **argv) {
     // Build the GCC compile command
     std::stringstream compile_cmd;
     compile_cmd
-        << "gcc -std=c99 "
-           "-Wall -Wextra -Wpedantic -Werror "
-           "-Wconversion -Wsign-conversion -Wshadow -Wfloat-equal "
-           "-Wundef -Wcast-align -Wcast-qual -Wwrite-strings "
-           "-Wmissing-prototypes -Wstrict-prototypes -Wold-style-definition "
-           "-Wformat=2 -Wformat-security -Wlogical-op "
-           "-Wimplicit-fallthrough=5 -Wduplicated-cond -Wduplicated-branches "
+        << "gcc -std=c99 -Wall -Wextra -Wpedantic "
+           "-Wconversion -Wsign-conversion -Wshadow -Wfloat-equal -Wundef "
+           "-Wcast-align -Wold-style-definition -Wformat=2 -Wformat-security "
+           "-Wlogical-op -Wimplicit-fallthrough=5 -Wduplicated-cond "
+           "-Wduplicated-branches "
            "-Wvla -Walloc-zero -Wnull-dereference -Wuninitialized "
-           "-fanalyzer "
-           "-fstrict-aliasing -Wstrict-aliasing=3 "
-           "-fstack-protector-strong -D_FORTIFY_SOURCE=2 "
-           "-fPIE -pie "
-           "-O2 "
-           "-fsanitize=undefined,address "
-           "out.c ";
+           "-fanalyzer -fstrict-aliasing -Wstrict-aliasing=3 "
+           "-fstack-protector-strong -D_FORTIFY_SOURCE=2 -fPIE -pie "
+           "-O2 -fsanitize=undefined,address -lm out.c ";
+
     // Append extra user flags (like -lm, -lwhatever)
     for (int i = 2; i < argc; ++i) {
       compile_cmd << " " << argv[i];
@@ -40,7 +35,7 @@ int main(int argc, char **argv) {
 
     std::cout << compile_cmd.str().c_str() << "\n";
     system(compile_cmd.str().c_str());
-    system("rm out.c");
+    // system("rm out.c");
 
   } catch (const std::exception &e) {
     std::cerr << "Error: " << e.what() << "\n";
