@@ -62,5 +62,3 @@ defun main(void) int {
 
     CloseWindow();
 }
-
-// Utility function to get random color
