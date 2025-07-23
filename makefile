@@ -59,9 +59,10 @@ install: $(TARGET)
 	fi
 
 # Run tests (from ./tests directory)
-test:
+test: $(TARGET)
 	@$(MAKE) -C $(TEST)
 
 # Clean all build files
 clean:
 	rm -rf $(BUILD)
+	@$(MAKE) -C $(TEST) clean

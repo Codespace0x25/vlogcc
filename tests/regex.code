@@ -2,43 +2,43 @@ require "../lib/regex.code";
 
 defun main(void) int {
     if (regex_match("^a.*c$", "abc")) {
-        puts("matched!");
+        printf("matched!");
     } else {
-        puts("no match");
+        printf("no match");
     }
 
     if (regex_match("ab+c", "abbbc")) {
-        puts("matched 2!");
+        printf("matched 2!");
     } else {
-        puts("no match 2");
+        printf("no match 2");
     }
 
     if (regex_match("x+", "y")) {
-        puts("should not match");
+        printf("should not match");
     } else {
-        puts("correctly didn't match");
+        printf("correctly didn't match");
     }
 
     if (regex_match("\\d\\d\\d", "123")) {
-        puts("digit match");
+        printf("digit match");
     } else {
-        puts("digit fail");
+        printf("digit fail");
     }
 
     if (regex_match("[a-z]+", "Vlog")) {
-        puts("lowercase fail");
+        printf("lowercase fail");
     } else {
-        puts("lowercase correctly failed");
+        printf("lowercase correctly failed");
     }
 
     if (regex_match("[A-Za-z]+", "Vlog123")) {
-        puts("alpha fail");
+        printf("alpha fail");
     } else {
-        puts("alpha correctly failed");
+        printf("alpha correctly failed");
     }
 
     if (regex_match("[A-Za-z]+", "Vlog")) {
-        puts("alpha matched");
+        printf("alpha matched");
     }
 
     return 0;
