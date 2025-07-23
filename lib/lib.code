@@ -4,13 +4,127 @@
 #include <stddef.h>
 #include <sys/syscall.h>
 #include <unistd.h>
+#include <stdio.h>
+#include <stdarg.h>
+
 
 
 
 // --- C Standard Library externs ---
-extern int puts(const char *);
-extern int printf(const char *restrict, ...);
+//io
+// output
 
+
+// colors
+macro term_RESET    "\033[0m"
+macro term_BOLD     "\033[1m"
+macro term_UNDER    "\033[4m"
+
+macro term_BLACK    "\033[30m"
+macro term_RED      "\033[31m"
+macro term_GREEN    "\033[32m"
+macro term_YELLOW   "\033[33m"
+macro term_BLUE     "\033[34m"
+macro term_MAGENTA  "\033[35m"
+macro term_CYAN     "\033[36m"
+macro term_WHITE    "\033[37m"
+
+macro term_BGBLACK  "\033[40m"
+macro term_BGRED    "\033[41m"
+macro term_BGGREEN  "\033[42m"
+macro term_BGYELLOW "\033[43m"
+macro term_BGRBLUE  "\033[44m"
+macro term_BGMAG    "\033[45m"
+macro term_BGCYAN   "\033[46m"
+macro term_BGWHITE  "\033[47m"
+
+
+
+// dont use this deperaceted(bad girl\bad boy\bad nd)
+extern int puts(const char *);
+//          |
+//          |
+//          |
+// use this V
+
+extern int printf(const char *restrict, ...);
+extern int fprintf(FILE *restrict stream, const char *restrict format, ...);
+extern int sprintf(char *restrict str, const char *restrict format, ...);
+extern int snprintf(char *restrict str, size_t size, const char *restrict format, ...);
+extern int vprintf(const char *restrict format, va_list ap);
+extern int vfprintf(FILE *restrict stream, const char *restrict format, va_list ap);
+extern int vdprintf(int fd, const char *restrict format, va_list ap);
+extern int vsnprintf(char *restrict str, size_t size, const char *restrict format, va_list ap);
+
+// --- Input ---
+
+
+// dont use this deperaceted(bad girl\bad boy\bad nd)
+extern char *gets(char *s); 
+//          |
+//          |
+//          |
+// use this V
+
+extern int scanf(const char *restrict format, ...);
+extern int fscanf(FILE *restrict stream, const char *restrict format, ...);
+extern int sscanf(const char *restrict str, const char *restrict format, ...);
+extern int getchar(void);
+extern int fgetc(FILE *stream);
+extern char *fgets(char *s, int size, FILE *stream);
+
+// --- File I/O and Streams ---
+
+
+// Open and close
+extern FILE *fopen(const char *restrict pathname, const char *restrict mode);
+extern FILE *freopen(const char *restrict pathname, const char *restrict mode, FILE *restrict stream);
+extern int fclose(FILE *stream);
+
+// Reading
+extern int fgetc(FILE *stream);
+extern char *fgets(char *s, int size, FILE *stream);
+extern size_t fread(void *ptr, size_t size, size_t nmemb, FILE *stream);
+
+// tmpnam parameter as char pointer (keep it simple, warnings may appear otherwise)
+
+// Writing
+extern int fputc(int c, FILE *stream);
+extern int fputs(const char *s, FILE *stream);
+extern size_t fwrite(const void *ptr, size_t size, size_t nmemb, FILE *stream);
+
+// Formatted input/output
+extern int fprintf(FILE *restrict stream, const char *restrict format, ...);
+extern int fscanf(FILE *restrict stream, const char *restrict format, ...);
+
+// Positioning
+extern int fseek(FILE *stream, long offset, int whence);
+extern long ftell(FILE *stream);
+extern void rewind(FILE *stream);
+
+// Error and EOF
+extern int feof(FILE *stream);
+extern int ferror(FILE *stream);
+extern void clearerr(FILE *stream);
+
+// Temporary files
+extern FILE *tmpfile(void);
+extern char *tmpnam(char s[L_tmpnam]);
+
+// Buffering
+extern void setbuf(FILE *stream, char *buf);
+extern int setvbuf(FILE *stream, char *buf, int mode, size_t size);
+
+// Flush
+extern int fflush(FILE *stream);
+
+// Standard streams
+extern FILE *stdin;
+extern FILE *stdout;
+extern FILE *stderr;
+
+
+// heap
 extern void *malloc(size_t);
 extern void *calloc(size_t, size_t);
 extern void *realloc(void *, size_t);
