@@ -133,7 +133,7 @@ You are free to:
 But you must:
 
 * Include the original license when redistributing
-* Make source code available for any distributed changes
+* Make source code available for any distributed changes (this only matters for the compiler. if you use said compiler to make a program the code can be close src. or use any license you wish)
 
 Read the full license here: [https://www.gnu.org/licenses/gpl-3.0.html](https://www.gnu.org/licenses/gpl-3.0.html)
 
