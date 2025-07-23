@@ -1,3 +1,112 @@
 require "lib.code"
 
+// Match things like [abc], [a-z], [^a-z]
+defun match_class(char *class, char test) int {
+    mut int negate = 0;
+    if (*class == '^') {
+        negate = 1;
+        class += 1;
+    }
 
+    while (*class && *class != ']') {
+        if (*(class+1) == '-' && *(class+2) && *(class+2) != ']') {
+            char start = *class;
+            char end = *(class+2);
+            if (test >= start && test <= end) return !negate;
+            class += 3;
+        } else {
+            if (*class == test) return !negate;
+            class += 1;
+        }
+    }
+
+    return negate;
+}
+
+// Match escape characters like \d \w \s \n
+defun match_escape(char escape, char test) int {
+    if (escape == 'd') return test >= '0' && test <= '9';
+    if (escape == 'w') return (test >= 'a' && test <= 'z') || (test >= 'A' && test <= 'Z') || (test >= '0' && test <= '9') || test == '_';
+    if (escape == 's') return test == ' ' || test == '\t' || test == '\n' || test == '\r';
+    if (escape == 'n') return test == '\n';
+    if (escape == 't') return test == '\t';
+    return test == escape;
+}
+
+int match_here(char *pattern, char *text);
+
+// `*` operator support
+defun match_star(char c, char *pattern, char *text) int {
+    while (*text && (*text == c || c == '.')) {
+        if (match_here(pattern, text)) return 1;
+        text += 1;
+    }
+    return match_here(pattern, text);
+}
+
+// `+` operator support
+defun match_plus(char c, char *pattern, char *text) int {
+    if (*text == 0 || (*text != c && c != '.')) return 0;
+    do {
+        text += 1;
+    } while (*text && (*text == c || c == '.'));
+    return match_here(pattern, text);
+}
+
+// `?` operator support
+defun match_question(char c, char *pattern, char *text) int {
+    if (*text && (*text == c || c == '.')) {
+        if (match_here(pattern, text + 1)) return 1;
+    }
+    return match_here(pattern, text);
+}
+
+defun match_here(char *pattern, char *text) int {
+    if (*pattern == 0) return 1;
+
+    if (pattern[1] == '*') return match_star(pattern[0], pattern + 2, text);
+    if (pattern[1] == '+') return match_plus(pattern[0], pattern + 2, text);
+    if (pattern[1] == '?') return match_question(pattern[0], pattern + 2, text);
+
+    if (*pattern == '$' && pattern[1] == 0) return *text == 0;
+
+    // Character class: [abc] or [a-z] or [^0-9]
+    if (*pattern == '[') {
+        mut int i = 1;
+        while (pattern[i] && pattern[i] != ']') i++;
+        if (pattern[i] == ']') {
+            if (*text && match_class(pattern + 1, *text)) {
+                return match_here(pattern + i + 1, text + 1);
+            }
+            return 0;
+        }
+    }
+
+    // Escape sequence: \d, \w, \s, \n, \t, etc.
+    if (*pattern == '\\') {
+        if (*text && match_escape(pattern[1], *text)) {
+            return match_here(pattern + 2, text + 1);
+        }
+        return 0;
+    }
+
+    if (*text && (*pattern == '.' || *pattern == *text)) {
+        return match_here(pattern + 1, text + 1);
+    }
+
+    return 0;
+}
+
+// Entry point: pattern vs text
+defun regex_match(char *pattern, char *text) int {
+    if (*pattern == '^') {
+        return match_here(pattern + 1, text);
+    }
+
+    while (*text) {
+        if (match_here(pattern, text)) return 1;
+        text += 1;
+    }
+
+    return 0;
+}

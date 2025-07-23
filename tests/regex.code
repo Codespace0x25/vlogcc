@@ -1,0 +1,45 @@
+require "../lib/regex.code";
+
+defun main(void) int {
+    if (regex_match("^a.*c$", "abc")) {
+        puts("matched!");
+    } else {
+        puts("no match");
+    }
+
+    if (regex_match("ab+c", "abbbc")) {
+        puts("matched 2!");
+    } else {
+        puts("no match 2");
+    }
+
+    if (regex_match("x+", "y")) {
+        puts("should not match");
+    } else {
+        puts("correctly didn't match");
+    }
+
+    if (regex_match("\\d\\d\\d", "123")) {
+        puts("digit match");
+    } else {
+        puts("digit fail");
+    }
+
+    if (regex_match("[a-z]+", "Vlog")) {
+        puts("lowercase fail");
+    } else {
+        puts("lowercase correctly failed");
+    }
+
+    if (regex_match("[A-Za-z]+", "Vlog123")) {
+        puts("alpha fail");
+    } else {
+        puts("alpha correctly failed");
+    }
+
+    if (regex_match("[A-Za-z]+", "Vlog")) {
+        puts("alpha matched");
+    }
+
+    return 0;
+}

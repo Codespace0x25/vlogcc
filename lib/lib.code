@@ -5,6 +5,7 @@
 #include <sys/syscall.h>
 #include <unistd.h>
 #include <stdio.h>
+#include <math.h>
 #include <stdarg.h>
 
 
@@ -387,7 +388,6 @@ defun string_clear(String* s) void {
 
 // math
 
-#include <math.h>
 
 
 macro PI_M 3.1415926535
@@ -402,4 +402,5 @@ type Vec3 {
     float y;
     float z;
 }
+
 

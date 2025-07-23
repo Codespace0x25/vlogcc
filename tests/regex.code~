@@ -1,0 +1,2 @@
+require '../lib/lib.code'
+require '../lib/regex.code'
