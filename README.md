@@ -123,14 +123,23 @@ make install PREFIX=/usr PREFIX_lib=/usr/local
 
 ## License
 
-This project is released **with no license**.
-Use it however you want — no credit needed, no restrictions.
-You're free to fork, modify, redistribute, or build upon it.
+This project is licensed under the **GNU General Public License v3.0**.
+
+You are free to:
+
+* Use, modify, and distribute this software
+* Build upon it for personal or commercial use
+
+But you must:
+
+* Include the original license when redistributing
+* Make source code available for any distributed changes
+
+Read the full license here: [https://www.gnu.org/licenses/gpl-3.0.html](https://www.gnu.org/licenses/gpl-3.0.html)
 
 ---
 
 ## Author
 
-Made by Olivia — a queer system hacker who codes for love and expression.
+owner/[head dev(maybe idk what to call it)] Olivia[she/them] — a queer system hacker who codes for love and expression.
 Passionate about minimalism, custom languages, purple things, and writing real compilers from scratch.
-
