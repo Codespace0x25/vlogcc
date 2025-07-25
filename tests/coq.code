@@ -19,7 +19,7 @@ defun COQ_init_array(size_t size) Int* {
 defun COQ_append_array(Int *array, int item) void {
     if (array->capacity <= array->size)
     {
-        array->capacity *= array->capacity;
+        array->capacity *= 2;
         array->data= (int *)realloc(array->data, array->capacity * sizeof(int));
     }
     array->data[array->size++] = item;
@@ -39,14 +39,13 @@ defun COQ_free_array(Int *array) void {
 defun main(void) int {
 
     Int *arr = COQ_init_array(10);
-    for (int i = 0; i < (int)arr->size; ++i)
+    for (int i = 0; i < 10; ++i)
     {
         COQ_append_array(arr, i);
     }
-    for (int i = 0; i < (int)arr->size; ++i)
+    for (int i = 0; i < 10; ++i)
     {
         printf("%d\n",  COQ_get_array_item(arr, (size_t)i));
-        printf("%d", arr->data[1]);
     }
     COQ_free_array(arr);
 }
