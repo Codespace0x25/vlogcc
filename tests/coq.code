@@ -1,0 +1,53 @@
+require "../lib/lib.code"
+
+type Int {
+    size_t capacity;
+    size_t size;
+    int *data;
+}
+
+defun COQ_init_array(size_t size) Int* {
+    Int *arr = (Int *)malloc(sizeof(Int));
+    if(arr == NULL) {
+        fprintf(stderr, "[ERROR] Array is Null");
+        abort();
+    }
+    arr->data = (int *)malloc(size * sizeof(int));
+    arr->capacity = size;
+    arr->size = 0;
+    return arr;
+}
+
+defun COQ_append_array(Int *array, int item) void {
+    if (array->capacity <= array->size)
+    {
+        array->capacity *= 2;
+        array->data= (int *)realloc(array->data, array->capacity * sizeof(int));
+    }
+    array->data[array->size++] = item;
+}
+
+defun COQ_get_array_item(Int *array, size_t index) int {
+    if(index < array->size) return array->data[index];
+    else fprintf(stderr, "[ERROR] Index is out of bound");
+    return 1;
+}
+
+defun COQ_free_array(Int *array) void {
+    free(array->data);
+    free(array);
+}
+
+defun main(void) int {
+
+    Int *arr = COQ_init_array(10);
+    for (int i = 0; i < 10; ++i)
+    {
+        COQ_append_array(arr, i);
+    }
+    for (int i = 0; i < 10; ++i)
+    {
+        printf("The items are: %d\n",  COQ_get_array_item(arr, (size_t)i));
+    }
+    COQ_free_array(arr);
+}

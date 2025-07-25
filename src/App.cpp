@@ -39,10 +39,11 @@ std::string App::preprocess(const std::string &code,
 
   std::regex requireRegex(R"(^\s*require\s+"(.+?)\"\s*;?)");
   std::regex externRegex(
-      R"(^\s*extern\s+([\w\d\*\s]+?)\s+(\w+)\s*\((.*?)\)\s*;?)");
+  R"(^\s*extern\s+([\w\d\*\s]+?)\s+(\w+)\s*\((.*?)\)\s*;?)");
+    std::regex typeRegex(R"(^\s*type\s+(\w+)\s*\{\s*)");
+
   std::regex defunRegex(
       R"(^\s*defun\s+(\w+)\s*\((.*?)\)\s*([\w\d\*\s]+)\s*\{)");
-  std::regex typeRegex(R"(^\s*type\s+(\w+)\s*\{\s*)");
   std::regex macroRegex(R"(^\s*macro\s+(\w+)\s+(.+?)\s*;?$)");
 
   std::regex mutInitRegex(R"(^\s*mut\s+([\w\d\*\s]+)\s+(\w+)\s*=\s*(.+)\s*;?)");

@@ -35,7 +35,7 @@ int main(int argc, char **argv) {
 
     std::cout << compile_cmd.str().c_str() << "\n";
     system(compile_cmd.str().c_str());
-    system("rm out.c");
+    //system("rm out.c");
 
   } catch (const std::exception &e) {
     std::cerr << "Error: " << e.what() << "\n";
