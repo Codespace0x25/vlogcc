@@ -2,7 +2,7 @@
 
 (defvar simpc-mode-syntax-table
   (let ((table (make-syntax-table)))
-    ;; C/C++ style comments
+    ;; comments
 	(modify-syntax-entry ?/ ". 124b" table)
 	(modify-syntax-entry ?* ". 23" table)
 	(modify-syntax-entry ?\n "> b" table)
