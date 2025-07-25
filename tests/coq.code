@@ -1,5 +1,4 @@
 require "../lib/lib.code"
-require "../lib/assert.code"
 
 type Int {
     size_t capacity;
@@ -9,7 +8,10 @@ type Int {
 
 defun COQ_init_array(size_t size) Int* {
     Int *arr = (Int *)malloc(sizeof(Int));
-    if(arr == NULL) assert("Exit null array initalize");
+    if(arr == NULL) {
+        fprintf(stderr, "[ERROR] Array is Null");
+        abort();
+    }
     arr->data = (int *)malloc(size * sizeof(int));
     arr->capacity = size;
     arr->size = 0;
@@ -27,7 +29,7 @@ defun COQ_append_array(Int *array, int item) void {
 
 defun COQ_get_array_item(Int *array, size_t index) int {
     if(index < array->size) return array->data[index];
-    else fprintf(stderr, "Index is out of bound");
+    else fprintf(stderr, "[ERROR] Index is out of bound");
     return 1;
 }
 
@@ -45,7 +47,7 @@ defun main(void) int {
     }
     for (int i = 0; i < 10; ++i)
     {
-        printf("%d\n",  COQ_get_array_item(arr, (size_t)i));
+        printf("The items are: %d\n",  COQ_get_array_item(arr, (size_t)i));
     }
     COQ_free_array(arr);
 }
