@@ -3,6 +3,11 @@ require "lib.code";
 require "raylib.code";
 
 
+/*
+*/
+
+
+
 defun rand_color(void) Color{
     return (Color){
        (unsigned char) rand_int(50, 255), // R

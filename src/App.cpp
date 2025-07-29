@@ -39,8 +39,8 @@ std::string App::preprocess(const std::string &code,
 
   std::regex requireRegex(R"(^\s*require\s+"(.+?)\"\s*;?)");
   std::regex externRegex(
-  R"(^\s*extern\s+([\w\d\*\s]+?)\s+(\w+)\s*\((.*?)\)\s*;?)");
-    std::regex typeRegex(R"(^\s*type\s+(\w+)\s*\{\s*)");
+      R"(^\s*extern\s+([\w\d\*\s]+?)\s+(\w+)\s*\((.*?)\)\s*;?)");
+  std::regex typeRegex(R"(^\s*type\s+(\w+)\s*\{\s*)");
 
   std::regex defunRegex(
       R"(^\s*defun\s+(\w+)\s*\((.*?)\)\s*([\w\d\*\s]+)\s*\{)");
@@ -128,7 +128,7 @@ std::string App::preprocess(const std::string &code,
 
     } else if (std::regex_match(line, match, typeRegex)) {
       std::string typeName = match[1];
-      out << "typedef struct {\n";
+      out << "typedef struct " << typeName << "_s" << "{\n";
 
       std::string fieldLine;
       while (std::getline(in, fieldLine)) {

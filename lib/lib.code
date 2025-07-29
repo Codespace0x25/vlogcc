@@ -386,6 +386,8 @@ defun string_clear(String* s) void {
     }
 }
 
+
+
 // math
 
 

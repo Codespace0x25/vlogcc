@@ -16,8 +16,8 @@ int main(int argc, char **argv) {
     // Build the GCC compile command
     std::stringstream compile_cmd;
     compile_cmd
-        << "gcc -std=c99 -Wall -Wextra -Wpedantic "
-           "-Wconversion -Wsign-conversion -Wshadow -Wfloat-equal -Wundef "
+        << "cc -std=c99 -Wall -Wextra -Wpedantic "
+           "-Wshadow  -Wundef "
            "-Wcast-align -Wold-style-definition -Wformat=2 -Wformat-security "
            "-Wlogical-op -Wimplicit-fallthrough=5 -Wduplicated-cond "
            "-Wduplicated-branches "
@@ -35,7 +35,7 @@ int main(int argc, char **argv) {
 
     std::cout << compile_cmd.str().c_str() << "\n";
     system(compile_cmd.str().c_str());
-    //system("rm out.c");
+    // system("rm out.c");
 
   } catch (const std::exception &e) {
     std::cerr << "Error: " << e.what() << "\n";
